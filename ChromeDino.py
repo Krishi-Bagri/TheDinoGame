@@ -3,7 +3,6 @@ import mediapipe as mp
 import pyautogui
 import numpy as np
 
-# Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
 mp_drawing = mp.solutions.drawing_utils
@@ -12,26 +11,22 @@ cap = cv2.VideoCapture(0)
 
 def get_angle(a, b, c):
     """ Calculate angle between three points """
-    a = np.array(a)  # First point
-    b = np.array(b)  # Mid point (pivot)
-    c = np.array(c)  # End point
+    a = np.array(a)
+    b = np.array(b) 
+    c = np.array(c)  
     
-    # Vector AB and BC
     ab = a - b
     bc = c - b
     
-    # Calculate the angle using the dot product and magnitude
     dot_product = np.dot(ab, bc)
     magnitude_ab = np.linalg.norm(ab)
     magnitude_bc = np.linalg.norm(bc)
     angle = np.arccos(dot_product / (magnitude_ab * magnitude_bc))
-    
-    # Convert angle from radians to degrees
+
     angle = np.degrees(angle)
     
     return angle
 
-# Initialize state
 previous_action = None
 
 while cap.isOpened():
@@ -39,13 +34,10 @@ while cap.isOpened():
     if not ret:
         break
     
-    # Convert the BGR image to RGB
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    # Process the image and detect pose
     results = pose.process(image)
     
-    # Draw the pose annotation on the image
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if results.pose_landmarks:
         mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
@@ -84,7 +76,6 @@ while cap.isOpened():
         # Calculate hand angle
         hand_angle = get_angle(left_shoulder, left_wrist, right_wrist)
         
-        # Determine action based on leg angles and hand angle
         if left_leg_angle < 90 and right_leg_angle < 90:
             action = 'bend'
             cv2.putText(image, 'BEND', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
@@ -98,20 +89,16 @@ while cap.isOpened():
         else:
             action = 'run'
         
-        # Perform action if it has changed
         if action != previous_action:
-            print(f"Action: {action}")  # Debug print for action detection
             if action == 'jump':
                 pyautogui.press('space')
-                print("Pressed: space")  # Debug print for key press
+                print("Pressed: space") 
             elif action == 'bend':
                 pyautogui.press('down')
-                print("Pressed: down")  # Debug print for key press
-            # 'run' requires no action as it's the default state
+                print("Pressed: down") 
 
             previous_action = action
-    
-    # Display the resulting frame
+            
     cv2.imshow('MediaPipe Pose', image)
     
     if cv2.waitKey(10) & 0xFF == ord('q'):
